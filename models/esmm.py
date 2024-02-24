@@ -3,10 +3,6 @@ from .layers import EmbeddingLayer, MultiLayerPerceptron
 
 class ESMMModel(torch.nn.Module):
     """
-    A pytorch implementation of Adaptive Information Transfer Multi-task Model.
-
-    Reference:
-        Xi, Dongbo, et al. Modeling the sequential dependence among audience multi-step conversions with multi-task learning in targeted display advertising. KDD 2021.
     """
 
     def __init__(self, categorical_field_dims, numerical_num, embed_dim, bottom_mlp_dims, tower_mlp_dims, task_num, dropout, gain):
