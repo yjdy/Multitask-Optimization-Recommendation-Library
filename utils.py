@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import random
 
-from datasets.aliexpress import AliExpressDataset
+from datasets.aliexpress import AliExpressDataset,split_dataset
 from models.sharedbottom import SharedBottomModel
 from models.singletask import SingleTaskModel
 from models.omoe import OMoEModel
@@ -12,9 +12,11 @@ from models.mmoe import MMoEModel
 from models.ple import PLEModel
 from models.aitm import AITMModel
 
-def get_dataset(name, path):
-    if 'AliExpress' in name:
+def get_dataset(name, path, ratio=0.0):
+    if 'AliExpress' in name and ratio<=0:
         return AliExpressDataset(path)
+    elif ratio > 0 and ratio < 1:
+        return split_dataset(path, ratio)
     else:
         raise ValueError('unknown dataset name: ' + name)
 

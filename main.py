@@ -32,35 +32,6 @@ def train(model, optimizer, data_loader, criterion, device, log_interval=100):
             total_loss = 0
 
 
-def metatrain(model, optimizer, data_loader, device, log_interval=100):
-    model.train()
-    total_loss = 0
-    loader = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
-    list_sup_categorical, list_sup_numerical, list_sup_y, list_qry_categorical, list_qry_numerical, list_qry_y = list(), list(), list(), list(), list(), list()
-    for i, (categorical_fields, numerical_fields, labels) in enumerate(loader):
-        categorical_fields, numerical_fields, labels = categorical_fields.to(device), numerical_fields.to(
-            device), labels.to(device)
-        batch_size = int(categorical_fields.size(0) / 2)
-        list_sup_categorical.append(categorical_fields[:batch_size])
-        list_qry_categorical.append(categorical_fields[batch_size:])
-        list_sup_numerical.append(numerical_fields[:batch_size])
-        list_qry_numerical.append(numerical_fields[batch_size:])
-        list_sup_y.append(labels[:batch_size])
-        list_qry_y.append(labels[batch_size:])
-
-        if (i + 1) % 2 == 0:
-            loss = model.global_update(list_sup_categorical, list_sup_numerical, list_sup_y, list_qry_categorical,
-                                       list_qry_numerical, list_qry_y)
-            model.zero_grad()
-            loss.backward()
-            optimizer.step()
-            total_loss += loss.item()
-            list_sup_categorical, list_sup_numerical, list_sup_y, list_qry_categorical, list_qry_numerical, list_qry_y = list(), list(), list(), list(), list(), list()
-        if (i + 1) % log_interval == 0:
-            loader.set_postfix(loss=total_loss / log_interval)
-            total_loss = 0
-
-
 def test(model, data_loader, task_num, device):
     model.eval()
     labels_dict, predicts_dict, loss_dict = {}, {}, {}
@@ -96,9 +67,11 @@ def main(dataset_name,
          device,
          save_dir):
     device = torch.device(device)
-    train_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/train.csv')
-    test_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/test.csv')
+    train_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/train.pkl')
+    valid_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/valid.pkl')
+    test_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/test.pkl')
     train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=4, shuffle=True)
+    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=4, shuffle=False)
     test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=4, shuffle=False)
 
     field_dims = train_dataset.field_dims
@@ -109,11 +82,9 @@ def main(dataset_name,
     save_path = f'{save_dir}/{dataset_name}_{model_name}.pt'
     early_stopper = EarlyStopper(num_trials=2, save_path=save_path)
     for epoch_i in range(epoch):
-        if model_name == 'metaheac':
-            metatrain(model, optimizer, train_data_loader, device)
-        else:
-            train(model, optimizer, train_data_loader, criterion, device)
-        auc, loss = test(model, test_data_loader, task_num, device)
+
+        train(model, optimizer, train_data_loader, criterion, device)
+        auc, loss = test(model, valid_data_loader, task_num, device)
         print('epoch:', epoch_i, 'test: auc:', auc)
         for i in range(task_num):
             print('task {}, AUC {}, Log-loss {}'.format(i, auc[i], loss[i]))
@@ -140,7 +111,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_name', default='AliExpress_NL',
                         choices=['AliExpress_NL', 'AliExpress_ES', 'AliExpress_FR', 'AliExpress_US'])
     parser.add_argument('--dataset_path', default='./data/')
-    parser.add_argument('--model_name', default='metaheac',
+    parser.add_argument('--model_name', default='sharedbottom',
                         choices=['singletask', 'sharedbottom', 'omoe', 'mmoe', 'ple', 'aitm'])
     parser.add_argument('--epoch', type=int, default=50)
     parser.add_argument('--task_num', type=int, default=2)
