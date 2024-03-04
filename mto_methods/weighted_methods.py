@@ -1,0 +1,99 @@
+
+from typing import List, Tuple, Union
+from abc import abstractmethod
+
+import torch
+class WeightMethod:
+    def __init__(self, n_tasks: int, model,optimizer, device: torch.device='cpu',**kwargs):
+        super().__init__()
+        self.n_tasks = n_tasks
+        self.device = device
+        self.model = model
+        self.optimizer = optimizer
+
+    @abstractmethod
+    def get_weighted_loss(
+            self,
+            losses: torch.Tensor,
+            shared_parameters: Union[List[torch.nn.parameter.Parameter], torch.Tensor],
+            task_specific_parameters: Union[
+                List[torch.nn.parameter.Parameter], torch.Tensor
+            ],
+            last_shared_parameters: Union[List[torch.nn.parameter.Parameter], torch.Tensor],
+            representation: Union[torch.nn.parameter.Parameter, torch.Tensor],
+            **kwargs,
+    ):
+        pass
+
+    def zero_grad_modules(self, modules_parameters):
+        for p in modules_parameters:
+            if p.grad is not None:
+                p.grad.detach_()
+                p.grad.zero_()
+
+    def backward(
+            self,
+            losses: torch.Tensor,
+            shared_parameters: Union[
+                List[torch.nn.parameter.Parameter], torch.Tensor
+            ] = None,
+            task_specific_parameters: Union[
+                List[torch.nn.parameter.Parameter], torch.Tensor
+            ] = None,
+            last_shared_parameters: Union[
+                List[torch.nn.parameter.Parameter], torch.Tensor
+            ] = None,
+            representation: Union[List[torch.nn.parameter.Parameter], torch.Tensor] = None,
+            **kwargs,
+    ) -> Tuple[Union[torch.Tensor, None], Union[dict, None]]:
+        """
+
+        Parameters
+        ----------
+        losses :
+        shared_parameters :
+        task_specific_parameters :
+        last_shared_parameters : parameters of last shared layer/block
+        representation : shared representation
+        kwargs :
+
+        Returns
+        -------
+        Loss, extra outputs
+        """
+        loss, extra_outputs = self.get_weighted_loss(
+            losses=losses,
+            shared_parameters=shared_parameters,
+            task_specific_parameters=task_specific_parameters,
+            last_shared_parameters=last_shared_parameters,
+            representation=representation,
+            **kwargs,
+        )
+
+        # if self.max_norm > 0:
+        #     torch.nn.utils.clip_grad_norm_(shared_parameters, self.max_norm)
+
+        loss.backward()
+        return loss, extra_outputs
+
+    def __call__(
+            self,
+            losses: torch.Tensor,
+            shared_parameters: Union[
+                List[torch.nn.parameter.Parameter], torch.Tensor
+            ] = None,
+            task_specific_parameters: Union[
+                List[torch.nn.parameter.Parameter], torch.Tensor
+            ] = None,
+            **kwargs,
+    ):
+        return self.backward(
+            losses=losses,
+            shared_parameters=shared_parameters,
+            task_specific_parameters=task_specific_parameters,
+            **kwargs,
+        )
+
+    def parameters(self) -> List[torch.Tensor]:
+        """return learnable parameters"""
+        return []
