@@ -19,7 +19,7 @@ class AITMModel(torch.nn.Module):
         self.embed_output_dim = (len(categorical_field_dims) + 1) * embed_dim
         self.task_num = task_num
         self.hidden_dim = bottom_mlp_dims[-1]
-        self.dominator = nn.Parameter(torch.sqrt(self.hidden_dim),requires_grad=False)
+        self.dividend = nn.Parameter(torch.sqrt(self.hidden_dim),requires_grad=False)
 
         self.g = torch.nn.ModuleList([torch.nn.Linear(bottom_mlp_dims[-1], bottom_mlp_dims[-1]) for i in range(task_num - 1)])
         self.h1 = torch.nn.Linear(bottom_mlp_dims[-1], bottom_mlp_dims[-1])
@@ -47,7 +47,7 @@ class AITMModel(torch.nn.Module):
             V = self.h1(x)
             K = self.h2(x)
             Q = self.h3(x)
-            fea[i] = torch.sum(torch.nn.functional.softmax(torch.sum(K * Q, 2, True) / self.dominator, dim=1) * V, 1)
+            fea[i] = torch.sum(torch.nn.functional.softmax(torch.sum(K * Q, 2, True) / self.dividend, dim=1) * V, 1)
 
         results = [torch.sigmoid(self.tower[i](fea[i]).squeeze(1)) for i in range(self.task_num)]
         return results
