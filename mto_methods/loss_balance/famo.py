@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from typing import Union, List
+from typing import Union, List,Tuple
 
 from ..weighted_methods import WeightMethod
 
@@ -10,6 +10,8 @@ class FAMO(WeightMethod):
     def __init__(
             self,
             n_tasks: int,
+            model:torch.nn.Module,
+            optimizer,
             device: torch.device,
             gamma: float = 1e-5,
             w_lr: float = 0.025,
@@ -21,6 +23,27 @@ class FAMO(WeightMethod):
         self.w = torch.tensor([0.0] * n_tasks, device=device, requires_grad=True)
         self.w_opt = torch.optim.Adam([self.w], lr=w_lr, weight_decay=gamma)
         self.max_norm = max_norm
+        self.model = model
+        self.optimizer = optimizer
+
+    def backward_and_step(
+            self,
+            losses: torch.Tensor,
+            train_data,
+            train_label,
+            calc_loss,
+            **kwargs,
+    ) -> Tuple[Union[torch.Tensor, None], Union[dict, None]]:
+        loss, extra_outputs = self.get_weighted_loss(losses=losses, **kwargs)
+        loss.backward()
+        self.optimizer.step()
+        with torch.no_grad():
+            train_pred = self.model(train_data, return_representation=False)
+            new_losses = torch.stack(
+                [calc_loss(train_pred[i], train_label[i])
+                 for i in range(len(train_pred))]
+            )
+            self.update(new_losses.detach())
 
     def set_min_losses(self, losses):
         self.min_losses = losses
