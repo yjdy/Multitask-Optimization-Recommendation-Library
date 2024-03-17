@@ -4,12 +4,12 @@ from abc import abstractmethod
 
 import torch
 class WeightMethod:
-    def __init__(self, n_tasks: int, model,optimizer, device: torch.device='cpu',**kwargs):
+    def __init__(self, n_tasks: int, model, optimizer, device: torch.device='cpu',**kwargs):
         super().__init__()
         self.n_tasks = n_tasks
         self.device = device
-        self.model = model
         self.optimizer = optimizer
+        self.model = model
 
     @abstractmethod
     def get_weighted_loss(
@@ -30,6 +30,21 @@ class WeightMethod:
             if p.grad is not None:
                 p.grad.detach_()
                 p.grad.zero_()
+
+    def backward_and_step(
+            self,
+            categorical_fields,
+            numerical_fields,
+            train_labels,
+            criterion,
+            **kwargs
+    ) -> Tuple[Union[torch.Tensor, None], Union[dict, None]]:
+        y = self.model(categorical_fields, numerical_fields)
+        losses = torch.stack([criterion(y[i], train_labels[:, i].float()) for i in range(train_labels.size(1))])
+        weighted_loss, extra_outputs = self.get_weighted_loss(losses,self.model.share_module.parameters(),self.model.task_specific_module.parameters())
+        weighted_loss.backward()
+        self.optimizer.step()
+
 
     def backward(
             self,
