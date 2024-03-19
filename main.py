@@ -8,7 +8,7 @@ import numpy as np
 from utils import get_dataset, get_model, EarlyStopper, set_seed
 
 from torch.utils.tensorboard import SummaryWriter
-
+from mto_methods.weighted_methods import WeightMethod
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
     model.train()
@@ -26,6 +26,19 @@ def train(model, optimizer, data_loader, criterion, device, log_interval=100):
         model.zero_grad()
         loss.backward()
         optimizer.step()
+        total_loss += loss.item()
+        if (i + 1) % log_interval == 0:
+            loader.set_postfix(loss=total_loss / log_interval)
+            total_loss = 0
+
+def train_mtl(mtl_optimizer:WeightMethod, data_loader, device, log_interval=100):
+    total_loss = 0
+    loader = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
+    mtl_optimizer.set_mode(mode='train')
+    for i, (categorical_fields, numerical_fields, labels) in enumerate(loader):
+        categorical_fields, numerical_fields, labels = categorical_fields.to(device), numerical_fields.to(
+            device), labels.to(device)
+        loss, extra_outputs = mtl_optimizer(categorical_fields,numerical_fields)
         total_loss += loss.item()
         if (i + 1) % log_interval == 0:
             loader.set_postfix(loss=total_loss / log_interval)

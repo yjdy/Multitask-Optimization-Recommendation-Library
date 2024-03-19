@@ -1,19 +1,15 @@
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union,Dict
 from abc import abstractmethod
 
 import torch
 class WeightMethod:
-    def __init__(self, n_tasks: int, model:torch.nn.Module, optimizer:torch.optim.optimizer, device: torch.device='cpu',mode='train',**kwargs):
+    def __init__(self, n_tasks: int, model:torch.nn.Module, optimizer:torch.optim.optimizer, device: torch.device='cpu',**kwargs):
         super().__init__()
         self.n_tasks = n_tasks
         self.device = device
         self.optimizer = optimizer
         self.model = model
-        if mode=='train':
-            self.model.train()
-        else:
-            self.model.eval()
 
     @abstractmethod
     def get_weighted_loss(
@@ -40,13 +36,14 @@ class WeightMethod:
             train_labels,
             criterion,
             **kwargs
-    ) -> None:
+    ) -> Tuple[torch.Tensor,Dict]:
         self.optimizer.zero_grad()
         y = self.model(categorical_fields, numerical_fields)
         losses = torch.stack([criterion(y[i], train_labels[:, i].float()) for i in range(train_labels.size(1))])
         weighted_loss, extra_outputs = self.get_weighted_loss(losses,self.model.share_module.parameters(),self.model.task_specific_module.parameters())
         weighted_loss.backward()
         self.optimizer.step()
+        return weighted_loss,extra_outputs
 
 
     def backward(
@@ -110,6 +107,11 @@ class WeightMethod:
             criterion,
             **kwargs
         )
+    def set_mode(self,mode):
+        if mode=='train':
+            self.model.train()
+        else:
+            self.model.eval()
 
     def parameters(self) -> List[torch.Tensor]:
         """return learnable parameters"""
