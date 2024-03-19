@@ -4,12 +4,16 @@ from abc import abstractmethod
 
 import torch
 class WeightMethod:
-    def __init__(self, n_tasks: int, model, optimizer, device: torch.device='cpu',**kwargs):
+    def __init__(self, n_tasks: int, model:torch.nn.Module, optimizer:torch.optim.optimizer, device: torch.device='cpu',mode='train',**kwargs):
         super().__init__()
         self.n_tasks = n_tasks
         self.device = device
         self.optimizer = optimizer
         self.model = model
+        if mode=='train':
+            self.model.train()
+        else:
+            self.model.eval()
 
     @abstractmethod
     def get_weighted_loss(
@@ -36,7 +40,8 @@ class WeightMethod:
             train_labels,
             criterion,
             **kwargs
-    ) -> Tuple[Union[torch.Tensor, None], Union[dict, None]]:
+    ) -> None:
+        self.optimizer.zero_grad()
         y = self.model(categorical_fields, numerical_fields)
         losses = torch.stack([criterion(y[i], train_labels[:, i].float()) for i in range(train_labels.size(1))])
         weighted_loss, extra_outputs = self.get_weighted_loss(losses,self.model.share_module.parameters(),self.model.task_specific_module.parameters())
@@ -91,20 +96,19 @@ class WeightMethod:
 
     def __call__(
             self,
-            losses: torch.Tensor,
-            shared_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ] = None,
-            task_specific_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ] = None,
-            **kwargs,
+            categorical_fields,
+            numerical_fields,
+            train_labels,
+            criterion,
+            **kwargs
     ):
-        return self.backward(
-            losses=losses,
-            shared_parameters=shared_parameters,
-            task_specific_parameters=task_specific_parameters,
-            **kwargs,
+        return self.backward_and_step(
+            self,
+            categorical_fields,
+            numerical_fields,
+            train_labels,
+            criterion,
+            **kwargs
         )
 
     def parameters(self) -> List[torch.Tensor]:
