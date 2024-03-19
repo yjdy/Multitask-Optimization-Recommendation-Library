@@ -18,13 +18,11 @@ class FAMO(WeightMethod):
             task_weights: Union[List[float], torch.Tensor] = None,
             max_norm: float = 1.0,
     ):
-        super().__init__(n_tasks, device=device)
+        super(FAMO, self).__init__(n_tasks, model,optimizer,device=device)
         self.min_losses = torch.zeros(n_tasks).to(device)
         self.w = torch.tensor([0.0] * n_tasks, device=device, requires_grad=True)
         self.w_opt = torch.optim.Adam([self.w], lr=w_lr, weight_decay=gamma)
         self.max_norm = max_norm
-        self.model = model
-        self.optimizer = optimizer
 
     def backward_and_step(
             self,

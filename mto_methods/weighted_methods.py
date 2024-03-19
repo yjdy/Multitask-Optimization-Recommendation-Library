@@ -19,8 +19,6 @@ class WeightMethod:
             task_specific_parameters: Union[
                 List[torch.nn.parameter.Parameter], torch.Tensor
             ],
-            last_shared_parameters: Union[List[torch.nn.parameter.Parameter], torch.Tensor],
-            representation: Union[torch.nn.parameter.Parameter, torch.Tensor],
             **kwargs,
     ):
         pass

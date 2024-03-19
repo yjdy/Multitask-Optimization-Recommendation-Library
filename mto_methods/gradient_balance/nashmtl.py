@@ -9,6 +9,8 @@ class NashMTL(WeightMethod):
     def __init__(
             self,
             n_tasks: int,
+            model: torch.nn.Module,
+            optimizer,
             device: torch.device,
             max_norm: float = 1.0,
             update_weights_every: int = 1,
@@ -17,6 +19,8 @@ class NashMTL(WeightMethod):
         super(NashMTL, self).__init__(
             n_tasks=n_tasks,
             device=device,
+            model=model,
+            optimizer=optimizer
         )
 
         self.optim_niter = optim_niter
