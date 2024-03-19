@@ -9,6 +9,7 @@ from utils import get_dataset, get_model, EarlyStopper, set_seed
 
 from torch.utils.tensorboard import SummaryWriter
 from mto_methods.weighted_methods import WeightMethod
+from mto_methods import METHODS
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
     model.train()
@@ -31,14 +32,14 @@ def train(model, optimizer, data_loader, criterion, device, log_interval=100):
             loader.set_postfix(loss=total_loss / log_interval)
             total_loss = 0
 
-def train_mtl(mtl_optimizer:WeightMethod, data_loader, device, log_interval=100):
+def train_mtl(mtl_optimizer:WeightMethod, data_loader,criterion, device, log_interval=100):
     total_loss = 0
     loader = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
     mtl_optimizer.set_mode(mode='train')
     for i, (categorical_fields, numerical_fields, labels) in enumerate(loader):
         categorical_fields, numerical_fields, labels = categorical_fields.to(device), numerical_fields.to(
             device), labels.to(device)
-        loss, extra_outputs = mtl_optimizer(categorical_fields,numerical_fields)
+        loss, extra_outputs = mtl_optimizer(categorical_fields,numerical_fields,labels, criterion)
         total_loss += loss.item()
         if (i + 1) % log_interval == 0:
             loader.set_postfix(loss=total_loss / log_interval)
@@ -78,7 +79,8 @@ def main(dataset_name,
          embed_dim,
          weight_decay,
          device,
-         save_dir):
+         save_dir,
+         num_trials=2):
     device = torch.device(device)
     train_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/train.pkl')
     valid_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/valid.pkl')
@@ -92,11 +94,13 @@ def main(dataset_name,
     model = get_model(model_name, field_dims, numerical_num, task_num, expert_num, embed_dim).to(device)
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    mtl_optimizer = METHODS[args.mto_type](args.task_num, model,optimizer,device)
     save_path = f'{save_dir}/{dataset_name}_{model_name}.pt'
-    early_stopper = EarlyStopper(num_trials=2, save_path=save_path)
+    early_stopper = EarlyStopper(num_trials=num_trials, save_path=save_path)
     for epoch_i in range(epoch):
 
-        train(model, optimizer, train_data_loader, criterion, device)
+        # train(model, optimizer, train_data_loader, criterion, device)
+        train_mtl(mtl_optimizer,train_data_loader,device)
         auc, loss = test(model, valid_data_loader, task_num, device)
         print('epoch:', epoch_i, 'test: auc:', auc)
         for i in range(task_num):

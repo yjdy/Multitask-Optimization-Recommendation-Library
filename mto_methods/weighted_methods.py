@@ -39,7 +39,10 @@ class WeightMethod:
     ) -> Tuple[torch.Tensor,Dict]:
         self.optimizer.zero_grad()
         y = self.model(categorical_fields, numerical_fields)
-        losses = torch.stack([criterion(y[i], train_labels[:, i].float()) for i in range(train_labels.size(1))])
+        if isinstance(criterion,list) and len(criterion)==train_labels.shape[1]:
+            losses = torch.stack([criterion[i](y[i], train_labels[:, i].float()) for i in range(train_labels.size(1))])
+        else:
+            losses = torch.stack([criterion(y[i], train_labels[:, i].float()) for i in range(train_labels.size(1))])
         weighted_loss, extra_outputs = self.get_weighted_loss(losses,self.model.share_module.parameters(),self.model.task_specific_module.parameters())
         weighted_loss.backward()
         self.optimizer.step()

@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from typing import Union, List
 
 from ..weighted_methods import WeightMethod
@@ -60,3 +61,16 @@ class STL(WeightMethod):
         loss = losses[self.main_task]
 
         return loss, dict(weights=self.weights)
+
+class RLW(WeightMethod):
+    """Random loss weighting: https://arxiv.org/pdf/2111.10603.pdf"""
+
+    def __init__(self, n_tasks, device: torch.device):
+        super().__init__(n_tasks, device=device)
+
+    def get_weighted_loss(self, losses: torch.Tensor, **kwargs):
+        assert len(losses) == self.n_tasks
+        weight = (F.softmax(torch.randn(self.n_tasks), dim=-1)).to(self.device)
+        loss = torch.sum(losses * weight)
+
+        return loss, dict(weights=weight)

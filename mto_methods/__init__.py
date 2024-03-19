@@ -1,4 +1,4 @@
-from loss_balance import FAMO,STL,ScaleInvariantLinearScalarization,LinearScalarization,Uncertainty
+from loss_balance import FAMO,STL,ScaleInvariantLinearScalarization,LinearScalarization,Uncertainty,RLW
 from gradient_balance import NashMTL,IMTLG,LOG_IMTLG
 
 METHODS = dict(
