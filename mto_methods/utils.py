@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+
+EPS=1e-8
 @torch.no_grad
 def get_shared_grads(loss_list, model, optimizer,format='np'):
     task_num = len(loss_list)
