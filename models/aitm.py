@@ -43,7 +43,7 @@ class AITMModel(torch.nn.Module):
         for i in range(1, self.task_num):
             p = self.g[i - 1](fea[i - 1]).unsqueeze(1)
             q = fea[i].unsqueeze(1)
-            x = torch.cat([p, q], dim = 1)
+            x = torch.cat([p, q], dim=1)
             V = self.h1(x)
             K = self.h2(x)
             Q = self.h3(x)
