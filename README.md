@@ -17,6 +17,10 @@ MTOReclib provides a PyTorch implementation of multi-task recommendation models 
 
 > For the processed dataset, you should directly put the dataset in './data/' and unpack it. For the original dataset, you should put it in './data/' and run 'python preprocess.py --dataset_name NL'.
 
+## Results
+<p align="center"> 
+    <img src="https://github.com/yjdy/Multitask-Optimization-Recommendation-Library/blob/main/misc/result.png" width="800">
+</p>
 
 ## Citation
 
