@@ -8,6 +8,10 @@ MTOReclib provides a PyTorch implementation of multi-task recommendation models 
 
 </div>
 
+<p align="center"> 
+    <img src="https://github.com/yjdy/Multitask-Optimization-Recommendation-Library/blob/main/misc/toy.png" width="800">
+</p>
+
 ## Datasets
 * AliExpressDataset: This is a dataset gathered from real-world traffic logs of the search system in AliExpress. This dataset is collected from 5 countries: Russia, Spain, French, Netherlands, and America, which can utilized as 5 multi-task datasets. [Original_dataset](https://tianchi.aliyun.com/dataset/dataDetail?dataId=74690) [Processed_dataset Google Drive](https://drive.google.com/drive/folders/1F0TqvMJvv-2pIeOKUw9deEtUxyYqXK6Y?usp=sharing) [Processed_dataset Baidu Netdisk](https://pan.baidu.com/s/1AfXoJSshjW-PILXZ6O19FA?pwd=4u0r)
 
