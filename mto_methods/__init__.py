@@ -1,5 +1,5 @@
 from loss_balance import FAMO,STL,ScaleInvariantLinearScalarization,LinearScalarization,Uncertainty,RLW
-from gradient_balance import NashMTL,IMTLG,LOG_IMTLG,MGDA,LOG_MGDA
+from gradient_balance import NashMTL,IMTLG,LOG_IMTLG,MGDA,LOG_MGDA,CAGrad
 from pub import ParameterUpdateBalancing
 
 METHODS = dict(
