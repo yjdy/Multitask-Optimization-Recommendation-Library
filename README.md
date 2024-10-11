@@ -4,8 +4,7 @@ MTOReclib provides a PyTorch implementation of multi-task recommendation models 
 <div align="center">
 
 [![arXiv](https://img.shields.io/badge/arXiv%20paper-2409.12740-da282a.svg)](https://arxiv.org/abs/2410.05806)
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)  
-[![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
@@ -20,11 +19,13 @@ MTOReclib provides a PyTorch implementation of multi-task recommendation models 
 If our work has been of assistance to your work, feel free to give us a star ⭐ or cite us using :  
 
 ```
-@article{HLLM,
-title={HLLM: Enhancing Sequential Recommendations via Hierarchical Large Language Models for Item and User Modeling},
-author={Junyi Chen and Lu Chi and Bingyue Peng and Zehuan Yuan},
-journal={arXiv preprint arXiv:2409.12740},
-year={2024}
+@article{yuan2024parameterupdatebalancingalgorithm,
+      title={A Parameter Update Balancing Algorithm for Multi-task Ranking Models in Recommendation Systems}, 
+      author={Jun Yuan and Guohao Cai and Zhenhua Dong},
+      journal={arXiv preprint arXiv:2410.05806},
+      year={2024},
+      eprint={2410.05806},
+      archivePrefix={arXiv}
 }
 ```
 
