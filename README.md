@@ -1,7 +1,7 @@
 # Multitask-Optimization-Recommendation-Library
 MTOReclib provides a PyTorch implementation of multi-task recommendation models and multi-task optimization methods.
 
-<div align="center">
+<div align="left">
 
 [![arXiv](https://img.shields.io/badge/arXiv%20paper-2409.12740-da282a.svg)](https://arxiv.org/abs/2410.05806)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
@@ -38,4 +38,4 @@ If our work has been of assistance to your work, feel free to give us a star ⭐
 ```
 
 > Thanks to the excellent code repository [Multitask-Recommendation-Library](https://github.com/easezyc/Multitask-Recommendation-Library), [NashMTL](https://github.com/AvivNavon/nash-mtl) and [FAMO](https://github.com/Cranial-XIX/FAMO)! 
-> Multitask-Optimization-Recommendation-Library is released under the Apache License 2.0, some codes are modified from FAMO and Multitask-Recommendation-Library, which are released under the Apache License 2.0 and MIT License, respectively.
+> MTOReclib is released under the Apache License 2.0, some codes are modified from FAMO and Multitask-Recommendation-Library, which are released under the Apache License 2.0 and MIT License, respectively.

@@ -1,6 +1,5 @@
 import copy
 import random
-from abc import abstractmethod
 from typing import Dict, List, Tuple, Union
 
 import cvxpy as cp
@@ -14,95 +13,6 @@ from .utils import get_shared_grads
 
 EPS = 1e-8  # for numerical stability
 
-
-class WeightMethod:
-    def __init__(self, n_tasks: int, model,optimizer, device: torch.device='cpu',**kwargs):
-        super().__init__()
-        self.n_tasks = n_tasks
-        self.device = device
-        self.model = model
-        self.optimizer = optimizer
-
-    @abstractmethod
-    def get_weighted_loss(
-            self,
-            losses: torch.Tensor,
-            shared_parameters: Union[List[torch.nn.parameter.Parameter], torch.Tensor],
-            task_specific_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ],
-            last_shared_parameters: Union[List[torch.nn.parameter.Parameter], torch.Tensor],
-            representation: Union[torch.nn.parameter.Parameter, torch.Tensor],
-            **kwargs,
-    ):
-        pass
-
-    def backward(
-            self,
-            losses: torch.Tensor,
-            shared_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ] = None,
-            task_specific_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ] = None,
-            last_shared_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ] = None,
-            representation: Union[List[torch.nn.parameter.Parameter], torch.Tensor] = None,
-            **kwargs,
-    ) -> Tuple[Union[torch.Tensor, None], Union[dict, None]]:
-        """
-
-        Parameters
-        ----------
-        losses :
-        shared_parameters :
-        task_specific_parameters :
-        last_shared_parameters : parameters of last shared layer/block
-        representation : shared representation
-        kwargs :
-
-        Returns
-        -------
-        Loss, extra outputs
-        """
-        loss, extra_outputs = self.get_weighted_loss(
-            losses=losses,
-            shared_parameters=shared_parameters,
-            task_specific_parameters=task_specific_parameters,
-            last_shared_parameters=last_shared_parameters,
-            representation=representation,
-            **kwargs,
-        )
-
-        # if self.max_norm > 0:
-        #     torch.nn.utils.clip_grad_norm_(shared_parameters, self.max_norm)
-
-        loss.backward()
-        return loss, extra_outputs
-
-    def __call__(
-            self,
-            losses: torch.Tensor,
-            shared_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ] = None,
-            task_specific_parameters: Union[
-                List[torch.nn.parameter.Parameter], torch.Tensor
-            ] = None,
-            **kwargs,
-    ):
-        return self.backward(
-            losses=losses,
-            shared_parameters=shared_parameters,
-            task_specific_parameters=task_specific_parameters,
-            **kwargs,
-        )
-
-    def parameters(self) -> List[torch.Tensor]:
-        """return learnable parameters"""
-        return []
 
 
 class FAMO(WeightMethod):
@@ -392,10 +302,10 @@ class MGDA(WeightMethod):
 
         """
         # Our code
-        grads = {}
-        params = dict(
-            rep=representation, shared=shared_parameters, last=last_shared_parameters
-        )[self.params]
+        # grads = {}
+        # params = dict(
+        #     rep=representation, shared=shared_parameters, last=last_shared_parameters
+        # )[self.params]
         grads = get_shared_grads(losses, self.model, self.optimizer)
 
         gn = gradient_normalizers(grads, losses, self.normalization)
@@ -467,9 +377,9 @@ class LOG_MGDA(WeightMethod):
 
         """
         # Our code
-        params = dict(
-            rep=representation, shared=shared_parameters, last=last_shared_parameters
-        )[self.params]
+        # params = dict(
+        #     rep=representation, shared=shared_parameters, last=last_shared_parameters
+        # )[self.params]
         grads = get_shared_grads(losses, self.model, self.optimizer)
 
         gn = gradient_normalizers(grads, losses, self.normalization)
@@ -876,8 +786,7 @@ class LOG_CAGrad(WeightMethod):
                 (losses[i].log()).backward()
             self.grad2vec(shared_parameters, grads, grad_dims, i)
             # multi_task_model.zero_grad_shared_modules()
-            for p in shared_parameters:
-                p.grad = None
+            self.zero_grad_modules(shared_parameters)
 
         g, GTG, w_cpu = self.cagrad(grads, alpha=self.c, rescale=1)
         self.overwrite_grad(shared_parameters, g, grad_dims)
@@ -981,6 +890,77 @@ class RLW(WeightMethod):
 
         return loss, dict(weights=weight)
 
+
+# TO DO 完成IMTL
+class IMTL(WeightMethod):
+    """TOWARDS IMPARTIAL MULTI-TASK LEARNING: https://openreview.net/pdf?id=IMPnRXEWpvr"""
+
+    def __init__(self, n_tasks, model, optimizer,device: torch.device,lr=0.01):
+        super().__init__(n_tasks, model, optimizer, device=device)
+        self.logsigma = torch.tensor([0.0] * n_tasks, device=device, requires_grad=True)
+        self.optimizer.add_param_group({'param': [self.logsigma], 'lr': lr})
+        self.optim_lr = lr
+
+    def get_weighted_loss(
+            self,
+            losses,
+            shared_parameters,
+            **kwargs,
+    ):
+        grads = {}
+        norm_grads = {}
+
+        G = get_shared_grads(losses, self.model, self.optimizer)
+
+        for i, grad in enumerate(G):
+            norm_term = torch.norm(grad)
+            norm_grads[i] = grad / norm_term
+
+        GTG = torch.mm(G, G.t())
+
+        D = (
+                G[
+                    0,
+                ]
+                - G[
+                  1:,
+                  ]
+        )
+
+        U = torch.stack(tuple(v for v in norm_grads.values()))
+        U = (
+                U[
+                    0,
+                ]
+                - U[
+                  1:,
+                  ]
+        )
+        first_element = torch.matmul(
+            G[
+                0,
+            ],
+            U.t(),
+        )
+        try:
+            second_element = torch.inverse(torch.matmul(D, U.t()))
+        except:
+            # workaround for cases where matrix is singular
+            second_element = torch.inverse(
+                torch.eye(self.n_tasks - 1, device=self.device) * 1e-8
+                + torch.matmul(D, U.t())
+            )
+
+        alpha_ = torch.matmul(first_element, second_element)
+        alpha = torch.cat(
+            (torch.tensor(1 - alpha_.sum(), device=self.device).unsqueeze(-1), alpha_)
+        )
+
+        loss = torch.sum(losses * alpha)
+        extra_outputs = {}
+        extra_outputs["weights"] = alpha
+        extra_outputs["GTG"] = GTG.detach().cpu().numpy()
+        return loss, extra_outputs
 
 class IMTLG(WeightMethod):
     """TOWARDS IMPARTIAL MULTI-TASK LEARNING: https://openreview.net/pdf?id=IMPnRXEWpvr"""
