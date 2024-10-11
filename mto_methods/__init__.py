@@ -1,6 +1,6 @@
 from loss_balance import FAMO,STL,ScaleInvariantLinearScalarization,LinearScalarization,Uncertainty,RLW
 from gradient_balance import NashMTL,IMTLG,LOG_IMTLG,MGDA,LOG_MGDA
-from pub import ParameterBalancing
+from pub import ParameterUpdateBalancing
 
 METHODS = dict(
     stl=STL,
@@ -19,5 +19,5 @@ METHODS = dict(
     log_imtl=LOG_IMTLG,
     nashmtl=NashMTL,
     famo=FAMO,
-    pub=ParameterBalancing
+    pub=ParameterUpdateBalancing
 )

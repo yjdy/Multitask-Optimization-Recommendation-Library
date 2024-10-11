@@ -4,8 +4,8 @@ from .weighted_methods import WeightMethod
 
 import cvxpy as cp
 from .utils import get_shared_adam_updates
-
-class ParameterBalancing(WeightMethod):
+from typing import List
+class ParameterUpdateBalancing(WeightMethod):
     def __init__(
             self,
             n_tasks: int,
@@ -13,10 +13,10 @@ class ParameterBalancing(WeightMethod):
             optimizer,
             device: torch.device,
             max_norm: float = 1.0,
-            update_weights_every: int = 1,
+            update_weights_frequency: int = 1,
             optim_niter=20,
     ):
-        super(ParameterBalancing, self).__init__(
+        super(ParameterUpdateBalancing, self).__init__(
             n_tasks=n_tasks,
             device=device,
             model=model,
@@ -24,7 +24,7 @@ class ParameterBalancing(WeightMethod):
         )
 
         self.optim_niter = optim_niter
-        self.update_weights_every = update_weights_every
+        self.update_weights_frequency = update_weights_frequency
         self.max_norm = max_norm
 
         self.prvs_alpha_param = None
@@ -102,7 +102,7 @@ class ParameterBalancing(WeightMethod):
 
     def get_weighted_loss(
             self,
-            losses,
+            losses:List,
             shared_parameters,
             **kwargs,
     ):
@@ -123,7 +123,7 @@ class ParameterBalancing(WeightMethod):
         if self.step == 0:
             self._init_optim_problem()
 
-        if (self.step % self.update_weights_every) == 0:
+        if (self.step % self.update_weights_frequency) == 0:
             self.step += 1
 
             D = get_shared_adam_updates(losses, self.optimizer,format='torch')
