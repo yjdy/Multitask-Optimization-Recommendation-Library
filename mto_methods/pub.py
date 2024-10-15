@@ -13,7 +13,7 @@ class ParameterUpdateBalancing(WeightMethod):
             optimizer,
             device: torch.device,
             max_norm: float = 1.0,
-            update_weights_frequency: int = 1,
+            update_weights_frequency: int = 10,
             optim_niter=20,
     ):
         super(ParameterUpdateBalancing, self).__init__(
@@ -104,6 +104,7 @@ class ParameterUpdateBalancing(WeightMethod):
             self,
             losses:List,
             shared_parameters,
+            *args,
             **kwargs,
     ):
         """
@@ -123,7 +124,7 @@ class ParameterUpdateBalancing(WeightMethod):
         if self.step == 0:
             self._init_optim_problem()
 
-        if (self.step % self.update_weights_frequency) == 0:
+        if (self.step % self.update_weights_frequency) == 1: # 需要正常跑第一个step
             self.step += 1
 
             D = get_shared_adam_updates(losses, self.optimizer,format='torch')
@@ -133,14 +134,13 @@ class ParameterUpdateBalancing(WeightMethod):
                 torch.norm(DTD).detach().cpu().numpy().reshape((1,))
             )
             DTD = DTD / self.normalization_factor.item()
+            extra_outputs["DTD"] = DTD.detach().cpu().numpy()
             alpha = self.solve_optimization(DTD.cpu().detach().numpy())
             alpha = torch.from_numpy(alpha)
-
         else:
             self.step += 1
             alpha = self.prvs_alpha
 
         weighted_loss = sum([losses[i] * alpha[i] for i in range(len(alpha))])
         extra_outputs["weights"] = alpha
-        extra_outputs["DTD"] = DTD.detach().cpu().numpy()
         return weighted_loss, extra_outputs

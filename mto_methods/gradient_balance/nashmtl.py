@@ -13,7 +13,7 @@ class NashMTL(WeightMethod):
             optimizer,
             device: torch.device,
             max_norm: float = 1.0,
-            update_weights_every: int = 1,
+            update_weights_every: int = 10,
             optim_niter=20,
     ):
         super(NashMTL, self).__init__(
