@@ -3,7 +3,7 @@ from gradient_balance import NashMTL, IMTLG, LOG_IMTLG, MGDA, LOG_MGDA, CAGrad, 
 from pub import ParameterUpdateBalancing
 
 METHODS = dict(
-    stl=STL,
+    base=STL,
     ls=LinearScalarization,
     uw=Uncertainty,
     scaleinvls=ScaleInvariantLinearScalarization,

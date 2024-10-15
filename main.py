@@ -100,7 +100,7 @@ def main(dataset_name,
     for epoch_i in range(epoch):
 
         # train(model, optimizer, train_data_loader, criterion, device)
-        train_mtl(mtl_optimizer,train_data_loader,device)
+        train_mtl(mtl_optimizer,train_data_loader,criterion,device)
         auc, loss = test(model, valid_data_loader, task_num, device)
         print('epoch:', epoch_i, 'test: auc:', auc)
         for i in range(task_num):
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', default='cuda:0')
     parser.add_argument('--save_dir', default='chkpt')
     parser.add_argument('--mto_type', default='base',
-                        choices=['base','mgda','mgdafw','paretomtl','nashmtl','bandit','imtl','imtlg','uncertainty','pcgrad','cagrad','famo'])
+                        choices=['base','mgda','mgdafw','paretomtl','nashmtl','imtl','imtlg','uncertainty','pcgrad','cagrad','famo'])
     parser.add_argument('--mto_normalization_type', default='none', choices=['l2','none','loss','loss+'])
     args = parser.parse_args()
 
