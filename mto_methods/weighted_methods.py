@@ -4,7 +4,7 @@ from abc import abstractmethod
 
 import torch
 class WeightMethod:
-    def __init__(self, n_tasks: int, model:torch.nn.Module, optimizer:torch.optim.optimizer, device: torch.device='cpu',**kwargs):
+    def __init__(self, n_tasks: int, model:torch.nn.Module, optimizer:torch.optim.Optimizer, device: torch.device='cpu',**kwargs):
         super().__init__()
         self.n_tasks = n_tasks
         self.device = device

@@ -53,6 +53,7 @@ def get_model(name, categorical_field_dims, numerical_num, task_num, expert_num,
                          tower_mlp_dims=(128, 64), task_num=task_num, dropout=0.2)
     else:
         raise ValueError('unknown model name: ' + name)
+    # TO DO STEM
 
 
 class EarlyStopper(object):

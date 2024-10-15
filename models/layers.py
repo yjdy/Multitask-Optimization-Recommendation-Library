@@ -6,7 +6,7 @@ class EmbeddingLayer(torch.nn.Module):
     def __init__(self, field_dims, embed_dim, gain=1):
         super().__init__()
         self.embedding = torch.nn.Embedding(sum(field_dims), embed_dim)
-        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
+        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.int64)
         torch.nn.init.xavier_uniform_(self.embedding.weight, gain)
         self.num_fields = field_dims
 

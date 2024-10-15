@@ -141,7 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', default='cuda:0')
     parser.add_argument('--save_dir', default='chkpt')
     parser.add_argument('--mto_type', default='base',
-                        choices=['base','mgda','mgdafw','paretomtl','nashmtl','imtl','imtlg','uncertainty','pcgrad','cagrad','famo'])
+                        choices=['base','mgda','mgdafw','paretomtl','nashmtl','imtl','imtlg','uncertainty','pcgrad','cagrad','famo','pub'])
     parser.add_argument('--mto_normalization_type', default='none', choices=['l2','none','loss','loss+'])
     args = parser.parse_args()
 

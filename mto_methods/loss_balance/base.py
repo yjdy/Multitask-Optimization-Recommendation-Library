@@ -11,10 +11,10 @@ class LinearScalarization(WeightMethod):
     def __init__(
             self,
             n_tasks: int,
-            device: torch.device,
+            model: torch.nn.Module, optimizer: torch.optim.Optimizer, device: torch.device = 'cpu',
             task_weights: Union[List[float], torch.Tensor] = None,
     ):
-        super().__init__(n_tasks, device=device)
+        super().__init__(n_tasks, model,optimizer,device=device)
         if task_weights is None:
             task_weights = torch.ones((n_tasks,))
         if not isinstance(task_weights, torch.Tensor):

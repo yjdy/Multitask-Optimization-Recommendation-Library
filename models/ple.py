@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from layers import EmbeddingLayer, MultiLayerPerceptron
+from .layers import EmbeddingLayer, MultiLayerPerceptron
 
 
 class PLEModel(torch.nn.Module):
