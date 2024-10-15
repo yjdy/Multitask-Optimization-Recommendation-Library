@@ -53,7 +53,7 @@ class WeightMethod:
 
         losses = self.forward(categorical_fields,numerical_fields,train_labels,criterion)
 
-        weighted_loss, extra_outputs = self.get_weighted_loss(losses,self.model.share_module.parameters(),self.model.task_specific_module.parameters())
+        weighted_loss, extra_outputs = self.get_weighted_loss(losses,self.model.shared_module.parameters(),self.model.task_specific_module.parameters())
         weighted_loss.backward()
         self.optimizer.step()
         return weighted_loss,extra_outputs
@@ -113,7 +113,6 @@ class WeightMethod:
             **kwargs
     ):
         return self.backward_and_step(
-            self,
             categorical_fields,
             numerical_fields,
             train_labels,

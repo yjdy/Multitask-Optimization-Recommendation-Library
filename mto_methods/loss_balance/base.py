@@ -22,7 +22,7 @@ class LinearScalarization(WeightMethod):
         assert len(task_weights) == n_tasks
         self.task_weights = task_weights.to(device)
 
-    def get_weighted_loss(self, losses, **kwargs):
+    def get_weighted_loss(self, losses, *args, **kwargs):
         loss = torch.sum(losses * self.task_weights)
         return loss, dict(weights=self.task_weights)
 
@@ -32,10 +32,10 @@ class ScaleInvariantLinearScalarization(WeightMethod):
     def __init__(
             self,
             n_tasks: int,
-            device: torch.device,
+            model: torch.nn.Module, optimizer: torch.optim.Optimizer, device: torch.device = 'cpu',
             task_weights: Union[List[float], torch.Tensor] = None,
     ):
-        super().__init__(n_tasks, device=device)
+        super().__init__(n_tasks, model, optimizer, device=device)
         if task_weights is None:
             task_weights = torch.ones((n_tasks,))
         if not isinstance(task_weights, torch.Tensor):
@@ -43,7 +43,7 @@ class ScaleInvariantLinearScalarization(WeightMethod):
         assert len(task_weights) == n_tasks
         self.task_weights = task_weights.to(device)
 
-    def get_weighted_loss(self, losses, **kwargs):
+    def get_weighted_loss(self, losses, *args,**kwargs):
         loss = torch.sum(torch.log(losses) * self.task_weights)
         return loss, dict(weights=self.task_weights)
 
@@ -56,7 +56,7 @@ class STL(WeightMethod):
         self.weights = torch.zeros(n_tasks, device=device)
         self.weights[main_task] = 1.0
 
-    def get_weighted_loss(self, losses: torch.Tensor, **kwargs):
+    def get_weighted_loss(self, losses: torch.Tensor, *args,**kwargs):
         assert len(losses) == self.n_tasks
         loss = losses[self.main_task]
 
