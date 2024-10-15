@@ -104,6 +104,7 @@ class NashMTL(WeightMethod):
             self,
             losses,
             shared_parameters,
+            *args,
             **kwargs,
     ):
         """

@@ -224,9 +224,9 @@ class MGDA(WeightMethod):
     """
 
     def __init__(
-            self, n_tasks, device: torch.device, params="shared", normalization="none"
+            self, n_tasks, model,optimizer,device: torch.device, params="shared", normalization="none"
     ):
-        super().__init__(n_tasks, device=device)
+        super().__init__(n_tasks, model,optimizer,device=device)
         self.solver = MinNormSolver()
         assert params in ["shared", "last", "rep"]
         self.params = params
@@ -347,7 +347,7 @@ class LOG_MGDA(WeightMethod):
             rep=representation, shared=shared_parameters, last=last_shared_parameters
         )[self.params]
         grads = get_shared_grads(losses, self.model, self.optimizer)
-
+        # TO DO 全部修改成numpy形式
         gn = gradient_normalizers(grads, losses, self.normalization)
         for t in range(self.n_tasks):
             for gr_i in range(len(grads[t])):

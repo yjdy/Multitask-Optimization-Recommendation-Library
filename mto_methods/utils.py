@@ -3,8 +3,7 @@ import numpy as np
 
 EPS=1e-8
 
-@torch.no_grad
-def get_shared_adam_updates(loss_list, optimizer,format='np'):
+def get_shared_adam_updates(loss_list, optimizer,format='torch'):
     task_num = len(loss_list)
     updates = [[] for _ in  range(task_num)]
     for j in range(task_num):
@@ -27,7 +26,6 @@ def get_shared_adam_updates(loss_list, optimizer,format='np'):
     if format=='torch':
         return torch.stack([torch.cat(updates[i]) for i in range(task_num)])
 
-@torch.no_grad
 def get_shared_grads(loss_list, model, optimizer,format='np'):
     task_num = len(loss_list)
     grads = [[] for _ in  range(task_num)]
@@ -37,15 +35,14 @@ def get_shared_grads(loss_list, model, optimizer,format='np'):
         task_loss.backward(retain_graph=True)
         for param in model.shared_module.parameters():
             if param.grad is not None:
-                grads[j].append(param.grad.data.clone().detach().flatten().cpu().numpy())
+                grads[j].append(param.grad.data.clone().detach().flatten().cpu())
             else:
-                grads[j].append(torch.zeros_like(param).detach().flatten().cpu().numpy())
+                grads[j].append(torch.zeros_like(param).detach().flatten().cpu())
     if format=='np':
-        return np.stack([np.concatenate(grads[i]) for i in range(task_num)])
+        return np.stack([np.concatenate(grads[i].numpy()) for i in range(task_num)])
     if format=='torch':
         return torch.stack([torch.cat(grads[i]) for i in range(task_num)])
 
-@torch.no_grad
 def get_grads(loss_list, model, optimizer,format='np'):
     task_num = len(loss_list)
     grads = [[] for _ in  range(task_num)]
