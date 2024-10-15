@@ -13,7 +13,7 @@ class PLEModel(torch.nn.Module):
 
     def __init__(self, categorical_field_dims, numerical_num, embed_dim, bottom_mlp_dims, tower_mlp_dims, task_num, shared_expert_num, specific_expert_num, dropout,gain=0.1):
         super().__init__()
-        self.embedding = EmbeddingLayer(categorical_field_dims, embed_dim,gain=0.1)
+        self.embedding = EmbeddingLayer(categorical_field_dims, embed_dim,gain=gain)
         self.numerical_layer = torch.nn.Linear(numerical_num, embed_dim)
         self.embed_output_dim = (len(categorical_field_dims) + 1) * embed_dim
         self.task_num = task_num
