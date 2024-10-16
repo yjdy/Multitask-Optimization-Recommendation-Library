@@ -11,6 +11,7 @@ from models.omoe import OMoEModel
 from models.mmoe import MMoEModel
 from models.ple import PLEModel
 from models.aitm import AITMModel
+from models.stem import STEM
 
 def get_dataset(name, path, ratio=0.0):
     if 'AliExpress' in name and ratio<=0:
@@ -51,6 +52,9 @@ def get_model(name, categorical_field_dims, numerical_num, task_num, expert_num,
         print("Model: AITM")
         return AITMModel(categorical_field_dims, numerical_num, embed_dim=embed_dim, bottom_mlp_dims=(512, 256),
                          tower_mlp_dims=(128, 64), task_num=task_num, dropout=0.2)
+    elif name == 'stem':
+        return STEM(categorical_field_dims, numerical_num,embedding_dim=embed_dim,num_tasks=task_num,
+                    num_shared_experts=int(expert_num / 2),num_specific_experts=int(expert_num / 2),net_dropout=0.2)
     else:
         raise ValueError('unknown model name: ' + name)
     # TO DO STEM

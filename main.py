@@ -133,7 +133,7 @@ if __name__ == '__main__':
                         choices=['AliExpress_NL', 'AliExpress_ES', 'AliExpress_FR', 'AliExpress_US'])
     parser.add_argument('--dataset_path', default='./data/')
     parser.add_argument('--model_name', default='sharedbottom',
-                        choices=['singletask', 'sharedbottom', 'omoe', 'mmoe', 'ple', 'aitm'])
+                        choices=['singletask', 'sharedbottom', 'omoe', 'mmoe', 'ple', 'aitm','stem'])
     parser.add_argument('--epoch', type=int, default=50)
     parser.add_argument('--task_num', type=int, default=2)
     parser.add_argument('--expert_num', type=int, default=8)
