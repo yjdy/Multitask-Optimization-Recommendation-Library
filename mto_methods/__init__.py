@@ -1,6 +1,6 @@
-from .loss_balance import FAMO, STL, ScaleInvariantLinearScalarization, LinearScalarization, Uncertainty, RLW,DynamicWeightAverage
-from .gradient_balance import NashMTL, IMTLG, LOG_IMTLG, MGDA, LOG_MGDA, CAGrad, PCGrad,GradDrop
-from .pub import ParameterUpdateBalancing
+from mto_methods.loss_balance import FAMO, STL, ScaleInvariantLinearScalarization, LinearScalarization, Uncertainty, RLW,DynamicWeightAverage
+from mto_methods.gradient_balance import NashMTL, IMTLG, LOG_IMTLG, MGDA, LOG_MGDA, CAGrad, PCGrad,GradDrop
+from mto_methods.parameter_balancing.pub import ParameterUpdateBalancing
 
 METHODS = dict(
     stl=STL,

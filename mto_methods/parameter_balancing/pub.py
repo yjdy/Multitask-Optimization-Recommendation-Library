@@ -1,9 +1,9 @@
 import torch
 import numpy as np
-from .weighted_methods import WeightMethod
+from mto_methods.weighted_methods import WeightMethod
 
 import cvxpy as cp
-from .utils import get_shared_adam_updates
+from mto_methods.utils import get_shared_adam_updates
 from typing import List
 class ParameterUpdateBalancing(WeightMethod):
     def __init__(
