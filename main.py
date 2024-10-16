@@ -10,6 +10,7 @@ from utils import get_dataset, get_model, EarlyStopper, set_seed
 from torch.utils.tensorboard import SummaryWriter
 from mto_methods.weighted_methods import WeightMethod
 from mto_methods import METHODS
+from mto_methods.parameter_balancing.adam_multitask import AadmMultiTask
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
     model.train()
@@ -93,7 +94,10 @@ def main(dataset_name,
     numerical_num = train_dataset.numerical_num
     model = get_model(model_name, field_dims, numerical_num, task_num, expert_num, embed_dim).to(device)
     criterion = torch.nn.BCELoss()
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    if args.mto_type.lower() == 'pub':
+        optimizer = AadmMultiTask(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    else:
+        optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     mtl_optimizer = METHODS[args.mto_type](args.task_num, model,optimizer,device)
     save_path = f'{save_dir}/{dataset_name}_{model_name}.pt'
     early_stopper = EarlyStopper(num_trials=num_trials, save_path=save_path)

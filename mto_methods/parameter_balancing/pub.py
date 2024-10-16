@@ -4,13 +4,16 @@ from mto_methods.weighted_methods import WeightMethod
 
 import cvxpy as cp
 from mto_methods.utils import get_shared_adam_updates
-from typing import List
+from typing import List, Tuple, Dict
+from .adam_multitask import AadmMultiTask
+
+
 class ParameterUpdateBalancing(WeightMethod):
     def __init__(
             self,
             n_tasks: int,
             model: torch.nn.Module,
-            optimizer,
+            optimizer: AadmMultiTask,
             device: torch.device,
             max_norm: float = 1.0,
             update_weights_frequency: int = 10,
@@ -102,7 +105,7 @@ class ParameterUpdateBalancing(WeightMethod):
 
     def get_weighted_loss(
             self,
-            losses:List,
+            losses: List,
             shared_parameters,
             *args,
             **kwargs,
@@ -124,10 +127,10 @@ class ParameterUpdateBalancing(WeightMethod):
         if self.step == 0:
             self._init_optim_problem()
 
-        if (self.step % self.update_weights_frequency) == 1: # 需要正常跑第一个step
+        if (self.step % self.update_weights_frequency) == 1:  # 需要正常跑第一个step
             self.step += 1
 
-            D = get_shared_adam_updates(losses, self.optimizer,format='torch')
+            D = get_shared_adam_updates(losses, self.optimizer, format='torch')
             DTD = torch.mm(D, D.t())
 
             self.normalization_factor = (
@@ -143,4 +146,23 @@ class ParameterUpdateBalancing(WeightMethod):
 
         weighted_loss = sum([losses[i] * alpha[i] for i in range(len(alpha))])
         extra_outputs["weights"] = alpha
+        return weighted_loss, extra_outputs
+
+    def backward_and_step(
+            self,
+            categorical_fields,
+            numerical_fields,
+            train_labels,
+            criterion,
+            **kwargs
+    ) -> Tuple[torch.Tensor, Dict]:
+
+        losses = self.forward(categorical_fields, numerical_fields, train_labels, criterion)
+
+        weighted_loss, extra_outputs = self.get_weighted_loss(losses, self.model.shared_module.parameters())
+        self.optimizer.set_task_weight(extra_outputs["weights"])
+
+        # weighted_loss.backward()
+        self.optimizer.backward_and_step(losses, self.model.shared_module.parameters(),
+                                         self.model.task_specific_module.parameters())
         return weighted_loss, extra_outputs
