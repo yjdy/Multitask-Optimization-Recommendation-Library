@@ -27,6 +27,7 @@ class STEM_Layer(nn.Module):
                                                                                    batch_norm=batch_norm)
                                                               for _ in range(self.num_specific_experts)]) for _ in
                                                range(num_tasks)])
+        gate_hidden_units.append(num_specific_experts*num_tasks+num_shared_experts)
         self.gate = nn.ModuleList([MultiLayerPerceptron(input_dim,
                                                         gate_hidden_units,
                                                         net_dropout,
@@ -131,6 +132,7 @@ class STEM(nn.Module):
                                                          output_layer=True,
                                                          batch_norm=batch_norm)
                                     for _ in range(num_tasks)])
+        self.output_activation = nn.ModuleList([nn.Sigmoid() for _ in range(self.num_tasks)])
 
 
         # self.reset_parameters()
@@ -149,10 +151,6 @@ class STEM(nn.Module):
         for i in range(self.num_layers):
             stem_outputs = self.stem_layers[i](stem_inputs)
             stem_inputs = stem_outputs
-        tower_output = [self.tower[i](stem_outputs[i]) for i in range(self.num_tasks)]
+        tower_output = [self.tower[i](stem_outputs[i]).squeeze(1) for i in range(self.num_tasks)]
         y_pred = [self.output_activation[i](tower_output[i]) for i in range(self.num_tasks)]
-        return_dict = {}
-        labels = self.feature_map.labels
-        for i in range(self.num_tasks):
-            return_dict["{}_pred".format(labels[i])] = y_pred[i]
-        return return_dict
+        return y_pred

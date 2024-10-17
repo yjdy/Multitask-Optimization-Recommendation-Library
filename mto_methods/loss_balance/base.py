@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from typing import Union, List
+from typing import Union, List, Tuple, Dict
 
 from ..weighted_methods import WeightMethod
 
@@ -25,6 +25,22 @@ class LinearScalarization(WeightMethod):
     def get_weighted_loss(self, losses, *args, **kwargs):
         loss = torch.sum(losses * self.task_weights)
         return loss, dict(weights=self.task_weights)
+
+    def backward_and_step(
+            self,
+            categorical_fields,
+            numerical_fields,
+            train_labels,
+            criterion,
+            **kwargs
+    ) -> Tuple[torch.Tensor,Dict]:
+
+        losses = self.forward(categorical_fields,numerical_fields,train_labels,criterion)
+
+        weighted_loss, extra_outputs = self.get_weighted_loss(losses)
+        weighted_loss.backward()
+        self.optimizer.step()
+        return weighted_loss,extra_outputs
 
 class ScaleInvariantLinearScalarization(WeightMethod):
     """Linear scalarization baseline L = sum_j w_j * l_j where l_j is the loss for task j and w_h"""

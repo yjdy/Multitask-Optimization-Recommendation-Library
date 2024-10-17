@@ -19,7 +19,7 @@ class EmbeddingLayer(torch.nn.Module):
 
 class MultiLayerPerceptron(torch.nn.Module):
 
-    def __init__(self, input_dim, embed_dims, dropout, activations='ReLU',output_layer=True,batch_norm=True):
+    def __init__(self, input_dim, embed_dims, dropout=0.0, activations='ReLU',output_layer=True,batch_norm=True):
         super().__init__()
         layers = list()
         for embed_dim in embed_dims:
@@ -27,7 +27,8 @@ class MultiLayerPerceptron(torch.nn.Module):
             if batch_norm:
                 layers.append(torch.nn.BatchNorm1d(embed_dim))
             layers.append(get_activation(activations))
-            layers.append(torch.nn.Dropout(p=dropout))
+            if dropout > 0:
+                layers.append(torch.nn.Dropout(p=dropout))
             input_dim = embed_dim
         if output_layer:
             layers.append(torch.nn.Linear(input_dim, 1))
