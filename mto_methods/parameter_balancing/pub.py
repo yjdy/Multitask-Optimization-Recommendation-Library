@@ -163,6 +163,6 @@ class ParameterUpdateBalancing(WeightMethod):
         self.optimizer.set_task_weight(extra_outputs["weights"])
 
         # weighted_loss.backward()
-        self.optimizer.backward_and_step(losses, self.model.shared_module.parameters(),
-                                         self.model.task_specific_module.parameters())
+        self.optimizer.backward_and_step(losses, list(self.model.shared_module.parameters()),
+                                         list(self.model.task_specific_module.parameters()))
         return weighted_loss, extra_outputs

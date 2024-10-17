@@ -10,7 +10,7 @@ class AadmMultiTask(Optimizer):
     """
 
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False, args=None,
-                 device='cpu', n_tasks=3, task_weight=[1, 1]):
+                 device='cpu', n_tasks=2, task_weight=[1, 1]):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -85,7 +85,7 @@ class AadmMultiTask(Optimizer):
             beta1, beta2 = self.betas
             bias_correction1 = 1 - beta1 ** state['step']
             bias_correction2 = 1 - beta2 ** state['step']
-            exp_avg, exp_avg_sq = state["exp_avt"], state["exp_avg_sq"]
+            exp_avg, exp_avg_sq = state["exp_avg"], state["exp_avg_sq"]
 
             for t in range(self.n_tasks):
                 grad = shared_grads[t][pi]
