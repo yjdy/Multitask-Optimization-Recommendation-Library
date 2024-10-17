@@ -107,9 +107,10 @@ class STEM(nn.Module):
                  num_shared_experts=1, num_specific_experts=1, net_dropout=0.0, gain=0.1):
         super(STEM, self).__init__()
         self.embed_output_dim = (len(categorical_field_dims) + 1) * embedding_dim
+        self.num_tasks = num_tasks
         # self.embedding_layer = FeatureEmbedding(feature_map, embedding_dim * (self.num_tasks+1))
-        self.embedding_layers = EmbeddingLayer(categorical_field_dims, embedding_dim * (self.num_tasks+1), gain=gain)
-        self.numerical_layers = torch.nn.Linear(numerical_num, embedding_dim * (self.num_tasks+1))
+        self.embedding_layer = EmbeddingLayer(categorical_field_dims, embedding_dim * (self.num_tasks+1), gain=gain)
+        self.numerical_layer = torch.nn.Linear(numerical_num, embedding_dim * (self.num_tasks+1))
         self.num_layers = num_layers
         self.embedding_dim = embedding_dim
         self.num_specific_experts = num_specific_experts
@@ -132,19 +133,19 @@ class STEM(nn.Module):
                                     for _ in range(num_tasks)])
 
 
-        self.reset_parameters()
-        self.model_to_device()
+        # self.reset_parameters()
+        # self.model_to_device()
 
     # def forward(self, inputs):
     def forward(self, categorical_x, numerical_x):
-        categorical_emb = self.embedding(categorical_x)
-        numerical_emb = self.numerical_layer(numerical_x).unsqueeze(1)
-        feature_emb = torch.cat([categorical_emb, numerical_emb], 1).view(-1, self.embed_output_dim)
+        categorical_emb = self.embedding_layer(categorical_x).split(self.embedding_dim, -1)
+        numerical_emb = self.numerical_layer(numerical_x).unsqueeze(1).split(self.embedding_dim,-1)
+        stem_inputs = [torch.cat([categorical_emb[i], numerical_emb[i]], 1).view(-1, self.embed_output_dim) for i in range(len(categorical_emb))]
 
         # X = self.get_inputs(inputs)
         # feature_emb = self.embedding_layer(X) # (?, num_field, D)
-        feature_embs = feature_emb.split(self.embed_output_dim, dim=2)
-        stem_inputs = [feature_embs[i].flatten(start_dim=1) for i in range(self.num_tasks+1)]
+        # feature_embs = feature_emb.split(self.embed_output_dim, dim=2)
+        # stem_inputs = [feature_embs[i].flatten(start_dim=1) for i in range(self.num_tasks+1)]
         for i in range(self.num_layers):
             stem_outputs = self.stem_layers[i](stem_inputs)
             stem_inputs = stem_outputs
