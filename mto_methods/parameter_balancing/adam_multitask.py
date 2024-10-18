@@ -4,7 +4,7 @@ from torch.optim.optimizer import Optimizer
 from typing import List, Union
 
 
-class AadmMultiTask(Optimizer):
+class AdamMultiTask(Optimizer):
     r"""
         Implements Adam with AdaTask algorithm.
     """
@@ -22,7 +22,7 @@ class AadmMultiTask(Optimizer):
         if not 0.0 <= weight_decay:
             raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
         defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, amsgrad=amsgrad)
-        super(AadmMultiTask, self).__init__(params, defaults)
+        super(AdamMultiTask, self).__init__(params, defaults)
 
         self.n_tasks = n_tasks
         self.device = device
@@ -131,7 +131,7 @@ class AadmMultiTask(Optimizer):
             denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(self.eps)
             step_size = step_lr / bias_correction1
             if weight_decay:
-                p.add_(p, alpha=-step_size * weight_decay)
+                p.add_(p, alpha=-step_lr * weight_decay)
             p.addcdiv_(exp_avg, denom, value=-step_size)
 
         return None
