@@ -81,7 +81,7 @@ def main(dataset_name,
          weight_decay,
          device,
          save_dir,
-         num_trials=2):
+         num_trials=3):
     device = torch.device(device)
     train_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/train.pkl')
     valid_dataset = get_dataset(dataset_name, os.path.join(dataset_path, dataset_name) + '/valid.pkl')
