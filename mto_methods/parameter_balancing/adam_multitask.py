@@ -106,7 +106,7 @@ class AdamMultiTask(Optimizer):
                 )
             grad = sum(grad)
             exp_avg.mul_(beta1).add_(grad, alpha=1-beta1)
-            exp_avg_sq.mul_(beta2).addcmul(grad, grad, value=1-beta2)
+            exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1-beta2)
         # task specific param
         for pi in range(len(task_specific_parameters)):
             p = task_specific_parameters[pi]
