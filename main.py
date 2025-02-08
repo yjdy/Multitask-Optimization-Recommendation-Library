@@ -10,7 +10,7 @@ from utils import get_dataset, get_model, EarlyStopper, set_seed
 from torch.utils.tensorboard import SummaryWriter
 from mto_methods.weighted_methods import WeightMethod
 from mto_methods import METHODS
-from mto_methods.parameter_balancing.adam_multitask import AadmMultiTask
+from mto_methods.parameter_balancing.adam_multitask import AdamMultiTask
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
     model.train()
@@ -95,7 +95,7 @@ def main(dataset_name,
     model = get_model(model_name, field_dims, numerical_num, task_num, expert_num, embed_dim).to(device)
     criterion = torch.nn.BCELoss()
     if args.mto_type.lower() == 'pub':
-        optimizer = AadmMultiTask(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        optimizer = AdamMultiTask(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     else:
         optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     mtl_optimizer = METHODS[args.mto_type](args.task_num, model,optimizer,device)
@@ -133,7 +133,7 @@ if __name__ == '__main__':
                         choices=['AliExpress_NL', 'AliExpress_ES', 'AliExpress_FR', 'AliExpress_US'])
     parser.add_argument('--dataset_path', default='./data/')
     parser.add_argument('--model_name', default='sharedbottom',
-                        choices=['singletask', 'sharedbottom', 'omoe', 'mmoe', 'ple', 'aitm','stem'])
+                        choices=['singletask', 'sharedbottom', 'omoe', 'mmoe', 'ple', 'aitm','stem','dsmoe'])
     parser.add_argument('--epoch', type=int, default=50)
     parser.add_argument('--task_num', type=int, default=2)
     parser.add_argument('--expert_num', type=int, default=8)
